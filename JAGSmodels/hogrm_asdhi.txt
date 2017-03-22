@@ -1,0 +1,49 @@
+model{
+	for(i in 1:N){
+		
+		theta[i] ~ dnorm(0,1)
+
+		for(c in 1:cat){
+			gamtes[i,c] <- lambda[c]*theta[i] + eps[i,c]
+			eps[i,c] ~ dnorm(0,tau[c])
+		}	
+		
+
+		for(j in 1:J){
+			Y[i,j]~dcat(prob[i,j,])
+
+			for (k in 1:(K-1)){
+				#logit(P[i,j,k]) <- b[j,k] - (a[j]*subtest[i,j])
+				logit(P[i,j,k]) <- a[j]*(b[j,k] - subtest[i,j])
+
+			}
+			P[i,j,K] <- 1.0
+
+			prob[i,j,1] <- P[i,j,1]
+			for(k in 2:K){
+				prob[i,j,k] <- P[i,j,k] - P[i,j,k-1]
+			}
+
+			subtest[i,j]<-gamtes[i, test[j]]
+			#
+		}
+
+	}
+
+	for(j in 1:J){
+		a[j]~dlnorm(0, 0.25)
+		
+		b[j,1] ~ dnorm(0,1)
+		b[j,2] ~ dnorm(0,1)T(b[j,1],)
+		b[j,3] ~ dnorm(0,1)T(b[j,2],)
+		b[j,4] ~ dnorm(0,1)T(b[j,3],)
+	}
+
+	for(c in 1:cat){
+		lambda[c] ~ dnorm(0.5, 25)T(0,1)
+	}
+	
+	for(c in 1:cat){
+		tau[c] <- 1/(1-lambda[c]*lambda[c])
+	}
+}

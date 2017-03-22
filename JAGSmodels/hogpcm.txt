@@ -1,0 +1,54 @@
+model{                                                         
+	for (i in 1:N) {            # persons                           
+		
+		theta[i] ~ dnorm(0,1)
+		
+		for(c in 1:cat){
+			gamtes[i,c] <- lambda[c]*theta[i] + eps[i,c]
+			eps[i,c] ~dnorm(0,tau[c])
+		}
+                                                                  
+	    	
+		for (j in 1:J) {	 		          
+			Y[i,j]~dcat(p[i,j,])
+                                           
+			t[i,j,1] <- 1	
+			
+			for (k in 2:K){
+				t[i,j,k] <- t[i,j,(k-1)]*exp(a[j]*(subtest[i,j]- b[j,(k-1)]))
+			}
+			
+			sum[i,j] <- t[i,j,1] + t[i,j,2] + t[i,j,3] + t[i,j,4] + t[i,j,5]
+			
+
+			for (k in 1:K){
+				p[i,j,k] <- t[i,j,k]/sum[i,j]
+			}
+
+             		subtest[i,j]<-gamtes[i, test[j]]
+
+		}
+	}                              
+		
+	# Priors                                                          
+                                                                  
+                                                                                                                                                                                                                                                                                      
+      	for (j in 1:J){
+		a[j] ~ dlnorm(0,1)
+		for(k in 1:(K-1)){
+			b[j,k] ~ dnorm(0,1)
+		} 
+	}                                           		                                                        
+        
+	for(c in 1:cat){
+		lambda[c] ~ dnorm(0.5, 25)T(0,1)
+	} 
+	
+	for(c in 1:cat){
+		tau[c] <- 1/(1-lambda[c]*lambda[c])
+	}                                                          
+                                                                
+}                                         
+
+
+
